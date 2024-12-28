@@ -1,19 +1,15 @@
-﻿using Spooksoft.HexEditor.Models;
+﻿using Spooksoft.HexEditor.Geometry;
+using Spooksoft.HexEditor.Infrastructure;
+using Spooksoft.HexEditor.Models;
 using Spooksoft.HexEditor.Types;
 using Spooksoft.HexEditor.Units;
-using Spooksoft.HexEditor.Geometry;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Spooksoft.HexEditor.Infrastructure;
 
 namespace Spooksoft.HexEditor.Controls
 {
@@ -35,7 +31,6 @@ namespace Spooksoft.HexEditor.Controls
 
         private class BaseMouseHitInfo
         {
-
         }
 
         private abstract class DocumentMouseHitInfo : BaseMouseHitInfo
@@ -66,7 +61,6 @@ namespace Spooksoft.HexEditor.Controls
             public CharMouseHitInfo(int offset)
                 : base(offset)
             {
-                
             }
 
             public override string ToString() => $"Mouse hit char at offset {Offset}";
@@ -85,7 +79,6 @@ namespace Spooksoft.HexEditor.Controls
 
         private class BaseMouseData
         {
-
         }
 
         private class HexSelectionMouseData : BaseMouseData
@@ -110,7 +103,7 @@ namespace Spooksoft.HexEditor.Controls
                 LeftOrigin = leftOrigin;
             }
 
-            public int OriginOffset { get; }            
+            public int OriginOffset { get; }
             public bool LeftOrigin { get; set; }
         }
 
@@ -179,7 +172,7 @@ namespace Spooksoft.HexEditor.Controls
                 ScrollLargeChange = 0;
             }
             else
-            {           
+            {
                 ScrollPosition = ScrollPosition.ClampTo(0, metrics.Scroll.Maximum);
                 ScrollMaximum = metrics.Scroll.Maximum;
                 ScrollLargeChange = metrics.Scroll.LargeChange;
@@ -287,10 +280,13 @@ namespace Spooksoft.HexEditor.Controls
             {
                 case BaseOffsetSelectionInfo baseOffsetSelection:
                     return baseOffsetSelection.Offset;
+
                 case RangeSelectionInfo rangeSelection:
                     return rangeSelection.Cursor;
+
                 case null:
                     return null;
+
                 default:
                     throw new InvalidOperationException("Invalid selection!");
             }
@@ -360,7 +356,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
+        #endregion Metrics
 
         #region Property change handlers
 
@@ -433,7 +429,7 @@ namespace Spooksoft.HexEditor.Controls
             InvalidateVisual();
         }
 
-        #endregion
+        #endregion Property change handlers
 
         #region Drawing
 
@@ -485,7 +481,7 @@ namespace Spooksoft.HexEditor.Controls
         private void DrawCharCursor(DrawingContext drawingContext, int ch, int line, Brush brush, Pen pen)
         {
             (double startY, double height) = GetCursorVerticalData(enteringMode, line);
-            
+
             drawingContext.DrawRectangle(brush,
                 pen,
                 new Rect(metrics.Control.CharPositions.CharBytes[ch].Position.StartX,
@@ -525,7 +521,7 @@ namespace Spooksoft.HexEditor.Controls
             int offset = ScrollPosition * Document.BytesPerRow;
             int lineOffset = offset + line * Document.BytesPerRow;
             var linePositions = metrics.Control.LinePositions.Positions;
-            
+
             if (selection is RangeSelectionInfo rangeSelectionInfo)
             {
                 if (rangeSelectionInfo.SelectionStart <= lineOffset + Document.BytesPerRow - 1 &&
@@ -553,7 +549,7 @@ namespace Spooksoft.HexEditor.Controls
             }
             else if (selection is HexCursorSelectionInfo hexCursorSelectionInfo)
             {
-                if (hexCursorSelectionInfo.Offset.IsWithin(lineOffset, lineOffset + Document.BytesPerRow - 1))                    
+                if (hexCursorSelectionInfo.Offset.IsWithin(lineOffset, lineOffset + Document.BytesPerRow - 1))
                 {
                     int charIndex = hexCursorSelectionInfo.Offset - lineOffset;
 
@@ -565,7 +561,6 @@ namespace Spooksoft.HexEditor.Controls
             {
                 if (charCursorSelectionInfo.Offset.IsWithin(lineOffset, lineOffset + Document.BytesPerRow - 1))
                 {
-
                     int charIndex = charCursorSelectionInfo.Offset - lineOffset;
 
                     DrawCharCursor(drawingContext, charIndex, line, SystemColors.HighlightBrush, null);
@@ -621,7 +616,7 @@ namespace Spooksoft.HexEditor.Controls
 
                 drawingContext.DrawRectangle(marginBrush, null, metrics.Control.MarginArea.Rectangle.ToRect());
 
-                for (int line = 0; line < linePositions.Count; line++)
+                for (int line = 0; line < linePositions.Count - 1; line++)
                 {
                     int lineOffset = offset + line * Document.BytesPerRow;
 
@@ -661,17 +656,20 @@ namespace Spooksoft.HexEditor.Controls
                             AddGlyph(hexChars[drawnByte % 16], hexPositions[ch].Positions[1].TextCharX, regularRun);
                     }
 
-                    // Drawing additional byte after end of document
-                    if (lineOffset <= Document.Size && lineOffset + Document.BytesPerRow > Document.Size)
+                    if (AllowAppendDocument)
                     {
-                        int ch = Document.Size - lineOffset;
-
-                        for (int i = 0; i < 2; i++)
+                        // Drawing additional byte after end of document
+                        if (lineOffset <= Document.Size && lineOffset + Document.BytesPerRow > Document.Size)
                         {
-                            if (enteringMode == EnteringMode.Overwrite && (selection?.IsHexCharSelected(Document.Size, i) ?? false))
-                                AddGlyph('_', hexPositions[ch].Positions[i].TextCharX, selectionRun);
-                            else
-                                AddGlyph('_', hexPositions[ch].Positions[i].TextCharX, regularRun);
+                            int ch = Document.Size - lineOffset;
+
+                            for (int i = 0; i < 2; i++)
+                            {
+                                if (enteringMode == EnteringMode.Overwrite && (selection?.IsHexCharSelected(Document.Size, i) ?? false))
+                                    AddGlyph('_', hexPositions[ch].Positions[i].TextCharX, selectionRun);
+                                else
+                                    AddGlyph('_', hexPositions[ch].Positions[i].TextCharX, regularRun);
+                            }
                         }
                     }
 
@@ -719,7 +717,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
+        #endregion Drawing
 
         #region Mouse handling
 
@@ -832,7 +830,7 @@ namespace Spooksoft.HexEditor.Controls
                         var cursorOnStart = start == mouseHitOffset;
 
                         if (start.IsWithin(0, Document.Size - 1) &&
-                            end.IsWithin(0,Document.Size -1 ))
+                            end.IsWithin(0, Document.Size - 1))
                         {
                             Selection = new RangeSelectionInfo(start, end, DataArea.Char, cursorOnStart);
                             InvalidateVisual();
@@ -891,7 +889,7 @@ namespace Spooksoft.HexEditor.Controls
             InvalidateVisual();
         }
 
-        #endregion
+        #endregion Mouse handling
 
         #region Selection handling
 
@@ -1052,6 +1050,7 @@ namespace Spooksoft.HexEditor.Controls
                     case null:
                         Selection = new RangeSelectionInfo(0, offset, DataArea.Hex, false);
                         break;
+
                     default:
                         throw new InvalidOperationException("Invalid selection!");
                 }
@@ -1067,7 +1066,7 @@ namespace Spooksoft.HexEditor.Controls
             {
                 var offset = GetCursorOffset();
                 if (offset != null)
-                    MoveSelectionTo(offset.Value - offset.Value % Document.BytesPerRow);                
+                    MoveSelectionTo(offset.Value - offset.Value % Document.BytesPerRow);
             }
         }
 
@@ -1101,7 +1100,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
+        #endregion Selection handling
 
         #region Cursor handling
 
@@ -1218,9 +1217,11 @@ namespace Spooksoft.HexEditor.Controls
                                 case DataArea.Hex:
                                     Selection = new HexCursorSelectionInfo(offset, @char != null ? @char.Value : 0);
                                     break;
+
                                 case DataArea.Char:
                                     Selection = new CharCursorSelectionInfo(offset);
                                     break;
+
                                 default:
                                     throw new InvalidEnumArgumentException("Unsupported area");
                             }
@@ -1278,7 +1279,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
+        #endregion Cursor handling
 
         #region Clipboard and deleting
 
@@ -1567,7 +1568,7 @@ namespace Spooksoft.HexEditor.Controls
             DoCopyToClipboard(false);
         }
 
-        #endregion
+        #endregion Clipboard and deleting
 
         #region Entering text handling
 
@@ -1604,7 +1605,11 @@ namespace Spooksoft.HexEditor.Controls
                         case EnteringMode.Overwrite:
                             {
                                 if (offset == Document.Size)
+                                {
+                                    if (!AllowAppendDocument)
+                                        continue;
                                     Document.Insert(offset, (byte)ch);
+                                }
                                 else
                                     Document.Replace(offset, (byte)ch);
 
@@ -1662,6 +1667,9 @@ namespace Spooksoft.HexEditor.Controls
 
                     if (enteringMode == EnteringMode.Insert || offset == Document.Size)
                     {
+                        if (!AllowAppendDocument)
+                            continue;
+
                         if (@char == 0)
                         {
                             byte b = (byte)(multiplier * hexValue);
@@ -1706,11 +1714,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
-
-        #region Undo history
-
-        #endregion
+        #endregion Entering text handling
 
         private static bool CheckShiftDown() => Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
@@ -1735,8 +1739,11 @@ namespace Spooksoft.HexEditor.Controls
                 // Draw data
                 DrawData(drawingContext, pixelsPerDip);
 
-                // Draw footer
-                DrawFooter(drawingContext);
+                if (IsShowFooter)
+                {
+                    // Draw footer
+                    DrawFooter(drawingContext);
+                }
             }
             finally
             {
@@ -1942,7 +1949,10 @@ namespace Spooksoft.HexEditor.Controls
                     if (enteringMode == EnteringMode.Insert)
                         enteringMode = EnteringMode.Overwrite;
                     else
-                        enteringMode = EnteringMode.Insert;
+                    {
+                        if (AllowAppendDocument)
+                            enteringMode = EnteringMode.Insert;
+                    }
 
                     InvalidateVisual();
                 }
@@ -2047,10 +2057,15 @@ namespace Spooksoft.HexEditor.Controls
             if (d is HexEditorDisplay hexEditorDisplay)
             {
                 hexEditorDisplay.HandleDocumentChanged(e.OldValue as HexByteContainer, e.NewValue as HexByteContainer);
+                if (hexEditorDisplay.Document != null)
+                {
+                    hexEditorDisplay.Document.AllowAppendDocument = hexEditorDisplay.AllowAppendDocument;
+                    hexEditorDisplay.Document.IsShowFooter = hexEditorDisplay.IsShowFooter;
+                }
             }
         }
 
-        #endregion
+        #endregion Document dependency property
 
         #region FontFamily dependency property
 
@@ -2071,7 +2086,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
+        #endregion FontFamily dependency property
 
         #region FontSize dependency property
 
@@ -2092,7 +2107,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
+        #endregion FontSize dependency property
 
         #region IsReadOnly dependency property
 
@@ -2106,7 +2121,7 @@ namespace Spooksoft.HexEditor.Controls
         public static readonly DependencyProperty IsReadOnlyProperty =
             DependencyProperty.Register("IsReadOnly", typeof(bool), typeof(HexEditorDisplay), new PropertyMetadata(false));
 
-        #endregion
+        #endregion IsReadOnly dependency property
 
         #region ScrollPosition dependency property
 
@@ -2137,7 +2152,7 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        #endregion
+        #endregion ScrollPosition dependency property
 
         #region ScrollMaximum dependency property
 
@@ -2152,7 +2167,7 @@ namespace Spooksoft.HexEditor.Controls
             private set => SetValue(ScrollMaximumPropertyKey, value);
         }
 
-        #endregion
+        #endregion ScrollMaximum dependency property
 
         #region ScrollLargeChange dependency property
 
@@ -2167,7 +2182,7 @@ namespace Spooksoft.HexEditor.Controls
             private set => SetValue(ScrollLargeChangePropertyKey, value);
         }
 
-        #endregion
+        #endregion ScrollLargeChange dependency property
 
         #region ScrollSmallChange dependency property
 
@@ -2182,6 +2197,36 @@ namespace Spooksoft.HexEditor.Controls
             private set => SetValue(ScrollSmallChangePropertyKey, value);
         }
 
-        #endregion
+        #endregion ScrollSmallChange dependency property
+
+        public bool AllowAppendDocument
+        {
+            get { return (bool)GetValue(AllowAppendDocumentProperty); }
+            set { SetValue(AllowAppendDocumentProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for AllowAppendDocument.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty AllowAppendDocumentProperty =
+            DependencyProperty.Register("AllowAppendDocument", typeof(bool), typeof(HexEditorDisplay), new PropertyMetadata(true, (o, e) =>
+            {
+                if (o is HexEditorDisplay hexEditorDisplay && hexEditorDisplay.Document != null)
+                    hexEditorDisplay.Document.AllowAppendDocument = (bool)e.NewValue;
+            }));
+
+        public bool IsShowFooter
+        {
+            get { return (bool)GetValue(IsShowFooterProperty); }
+            set { SetValue(IsShowFooterProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsShowFooter.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsShowFooterProperty =
+            DependencyProperty.Register("IsShowFooter", typeof(bool), typeof(HexEditorDisplay), new PropertyMetadata(true, (o, e) =>
+            {
+                if (o is HexEditorDisplay hexEditorDisplay && hexEditorDisplay.Document != null)
+                {
+                    hexEditorDisplay.Document.IsShowFooter = (bool)e.NewValue;
+                }
+            }));
     }
 }

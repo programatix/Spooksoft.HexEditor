@@ -457,7 +457,7 @@ namespace Spooksoft.HexEditor.Infrastructure
             finally
             {
                 Changed?.Invoke(this, new DataChangeEventArgs(ByteBufferChange.Insert, offset, targetLength));
-            }            
+            }
         }
 
         public virtual void Clear()
@@ -516,6 +516,8 @@ namespace Spooksoft.HexEditor.Infrastructure
 
         // Public properties --------------------------------------------------
 
+        public bool AllowAppendDocument { get; set; } = true;
+
         public int Size
         {
             get
@@ -523,7 +525,7 @@ namespace Spooksoft.HexEditor.Infrastructure
                 if (cachedSize != null)
                     return cachedSize.Value;
 
-                cachedSize = buckets.Sum(b => b.Size);
+                cachedSize = buckets.Sum(b => b.Size) - (AllowAppendDocument ? 0 : 1);
                 return cachedSize.Value;
             }
         }

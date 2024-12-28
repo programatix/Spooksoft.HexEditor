@@ -30,7 +30,7 @@ namespace Spooksoft.HexEditor.Controls
             private const double LAST_CHAR_MARGIN_MULTIPLIER = 1.0; // * character width
             private const double SPACE_BETWEEN_BYTES_MULTIPLIER = 1.0; // * character width
             private const double SPACE_BETWEEN_CHARS_MULTIPLIER = 0.1; // * character width
-            private const int DEFAULT_BYTES_PER_ROW = 16;            
+            private const int DEFAULT_BYTES_PER_ROW = 16;
 
             // Private types -------------------------------------------------
 
@@ -56,13 +56,13 @@ namespace Spooksoft.HexEditor.Controls
 
             private class ControlOffsetInfos
             {
-                public ControlOffsetInfos(int visibleLineCount, 
-                    int visibleFullLineCount, 
-                    int maxOffset, 
-                    int marginOffsetCharCount, 
-                    string offsetNumberFormat, 
-                    string offsetStringFormat, 
-                    double marginWidth, 
+                public ControlOffsetInfos(int visibleLineCount,
+                    int visibleFullLineCount,
+                    int maxOffset,
+                    int marginOffsetCharCount,
+                    string offsetNumberFormat,
+                    string offsetStringFormat,
+                    double marginWidth,
                     double offsetTextX)
                 {
                     VisibleLineCount = visibleLineCount;
@@ -276,7 +276,7 @@ namespace Spooksoft.HexEditor.Controls
                     CharDocumentArea = charDocumentArea;
                     FooterArea = footerArea;
                     CharPositions = charPositions;
-                    LinePositions = linePositions;                    
+                    LinePositions = linePositions;
                 }
 
                 public HeaderAreaInfo HeaderArea { get; }
@@ -285,7 +285,7 @@ namespace Spooksoft.HexEditor.Controls
                 public CharDocumentAreaInfo CharDocumentArea { get; }
                 public FooterAreaInfo FooterArea { get; }
                 public BytePositions CharPositions { get; }
-                public LinePositions LinePositions { get; }                
+                public LinePositions LinePositions { get; }
             }
 
             public class ScrollMetrics
@@ -326,7 +326,7 @@ namespace Spooksoft.HexEditor.Controls
                     throw new InvalidOperationException("Character metrics must be valid for this!");
 
                 var headerHeight = characterMetrics.CharHeight * HEADER_HEIGHT_MULTIPLIER;
-                var footerHeight = characterMetrics.CharHeight * FOOTER_HEIGHT_MULTIPLIER;
+                var footerHeight = document.IsShowFooter ? characterMetrics.CharHeight * FOOTER_HEIGHT_MULTIPLIER : 0;
                 var lineMargin = characterMetrics.CharHeight * LINE_MARGIN;
                 var totalLineHeight = characterMetrics.CharHeight + lineMargin;
                 var requiredHeight = Math.Max(headerHeight + totalLineHeight * MIN_VISIBLE_LINES + footerHeight, height);
@@ -338,7 +338,7 @@ namespace Spooksoft.HexEditor.Controls
             private ControlOffsetInfos EvalOffsetInfos(ControlHeightInfos heightInfos)
             {
                 // We allow to set cursor on a byte after last data byte, thus Size + 1
-                var maxOffset = document?.Size + 1 ?? 0;
+                var maxOffset = document?.Size + (document?.AllowAppendDocument == true ? 1 : 0) ?? 0;
                 var visibleLineCount = (int)Math.Ceiling((heightInfos.DocumentAreaHeight - heightInfos.LineMargin) / heightInfos.TotalLineHeight);
                 var visibleFullLineCount = (int)Math.Floor((heightInfos.DocumentAreaHeight - heightInfos.LineMargin) / heightInfos.TotalLineHeight);
                 var offsetValueChars = Math.Max(DEFAULT_ADDRESS_CHARS, (int)Math.Log(maxOffset, 16));
@@ -549,12 +549,12 @@ namespace Spooksoft.HexEditor.Controls
                 PixelRectangle hexDocumentArea = new PixelRectangle(0, heightInfos.HeaderHeight + 1, rowColInfos.CharPositions.EndOfHexArea, heightInfos.RequiredControlHeight - heightInfos.FooterHeight - 1);
                 PixelRectangle charDocumentArea = new PixelRectangle(rowColInfos.CharPositions.EndOfHexArea + 1, heightInfos.HeaderHeight + 1, rowColInfos.CharPositions.EndOfCharArea, heightInfos.RequiredControlHeight - heightInfos.FooterHeight - 1);
 
-                controlMetrics = new ControlMetrics(new HeaderAreaInfo(headerArea, headerArea.Center.Y - characterMetrics.CharHeight / 2.0),                    
-                    new MarginAreaInfo(addressMarginArea, offsetInfos.OffsetNumberFormat, offsetInfos.OffsetStringFormat, offsetInfos.OffsetTextX), 
-                    new HexDocumentAreaInfo(hexDocumentArea), 
+                controlMetrics = new ControlMetrics(new HeaderAreaInfo(headerArea, headerArea.Center.Y - characterMetrics.CharHeight / 2.0),
+                    new MarginAreaInfo(addressMarginArea, offsetInfos.OffsetNumberFormat, offsetInfos.OffsetStringFormat, offsetInfos.OffsetTextX),
+                    new HexDocumentAreaInfo(hexDocumentArea),
                     new CharDocumentAreaInfo(charDocumentArea),
-                    new FooterAreaInfo(footerArea), 
-                    rowColInfos.CharPositions, 
+                    new FooterAreaInfo(footerArea),
+                    rowColInfos.CharPositions,
                     rowColInfos.LinePositions);
                 controlMetricsValid = true;
             }
@@ -572,7 +572,7 @@ namespace Spooksoft.HexEditor.Controls
                 // Document size + 1 to make place for one byte after last document byte
                 if (document != null)
                 {
-                    maximum = Math.Max(0, (document.Size + 1) / document.BytesPerRow) - Math.Max(0, controlMetrics.LinePositions.Positions.Count - 2);
+                    maximum = Math.Max(0, (document.Size + (document.AllowAppendDocument ? 1 : 0)) / document.BytesPerRow) - Math.Max(0, controlMetrics.LinePositions.Positions.Count - 2);
                     largeChange = controlMetrics.LinePositions.Positions.Count;
                 }
                 else
@@ -630,7 +630,7 @@ namespace Spooksoft.HexEditor.Controls
                 }
             }
 
-            private void SetHeight(double value) 
+            private void SetHeight(double value)
             {
                 if (height != value)
                 {
@@ -645,7 +645,7 @@ namespace Spooksoft.HexEditor.Controls
             {
                 Invalidate();
             }
-           
+
             public void Invalidate()
             {
                 InvalidateCharacterMetrics();
@@ -718,7 +718,7 @@ namespace Spooksoft.HexEditor.Controls
                     SetHeight(value);
                 }
             }
-            
+
             public bool Valid => characterMetricsValid && controlMetricsValid && scrollMetricsValid;
 
             public CharacterMetrics Character => characterMetrics;

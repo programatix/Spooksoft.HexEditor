@@ -36,22 +36,18 @@ namespace Spooksoft.HexEditor.Infrastructure
 
         public HexByteContainer(int bucketSize = DEFAULT_BUCKET_SIZE) : base(bucketSize)
         {
-
         }
 
         public HexByteContainer(BufferPool<byte> bufferPool, int bucketSize = DEFAULT_BUCKET_SIZE) : base(bucketSize, bufferPool)
         {
-
         }
 
         public HexByteContainer(Stream stream, int bucketSize = DEFAULT_BUCKET_SIZE) : base(stream, bucketSize)
         {
-
         }
 
         public HexByteContainer(Stream stream, BufferPool<byte> bufferPool, int bucketSize = DEFAULT_BUCKET_SIZE) : base(stream, bucketSize, bufferPool)
         {
-
         }
 
         // Public properties --------------------------------------------------
@@ -64,6 +60,8 @@ namespace Spooksoft.HexEditor.Infrastructure
                 SetBytesPerRow(value);
             }
         }
+
+        public bool IsShowFooter { get; set; } = true;
 
         public event EventHandler BytesPerRowChanged;
     }
