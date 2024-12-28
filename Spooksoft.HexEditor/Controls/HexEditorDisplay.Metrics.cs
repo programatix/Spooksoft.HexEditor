@@ -326,7 +326,7 @@ namespace Spooksoft.HexEditor.Controls
                     throw new InvalidOperationException("Character metrics must be valid for this!");
 
                 var headerHeight = characterMetrics.CharHeight * HEADER_HEIGHT_MULTIPLIER;
-                var footerHeight = document.IsShowFooter ? characterMetrics.CharHeight * FOOTER_HEIGHT_MULTIPLIER : 0;
+                var footerHeight = document?.IsShowFooter == true ? characterMetrics.CharHeight * FOOTER_HEIGHT_MULTIPLIER : 0;
                 var lineMargin = characterMetrics.CharHeight * LINE_MARGIN;
                 var totalLineHeight = characterMetrics.CharHeight + lineMargin;
                 var requiredHeight = Math.Max(headerHeight + totalLineHeight * MIN_VISIBLE_LINES + footerHeight, height);
