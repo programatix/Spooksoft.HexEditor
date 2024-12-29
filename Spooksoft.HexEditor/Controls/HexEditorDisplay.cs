@@ -1984,6 +1984,14 @@ namespace Spooksoft.HexEditor.Controls
 
                 e.Handled = true;
             }
+            else if (e.Key == Key.C)
+            {
+                if (CheckControlDown() && !CheckShiftDown())
+                {
+                    CopyToClipboard();
+                    e.Handled = true;
+                }
+            }
         }
 
         // Public methods -----------------------------------------------------
@@ -2061,6 +2069,8 @@ namespace Spooksoft.HexEditor.Controls
                 {
                     hexEditorDisplay.Document.AllowAppendDocument = hexEditorDisplay.AllowAppendDocument;
                     hexEditorDisplay.Document.IsShowFooter = hexEditorDisplay.IsShowFooter;
+                    hexEditorDisplay.InvalidateMetrics();
+                    hexEditorDisplay.InvalidateVisual();
                 }
             }
         }
@@ -2210,7 +2220,11 @@ namespace Spooksoft.HexEditor.Controls
             DependencyProperty.Register("AllowAppendDocument", typeof(bool), typeof(HexEditorDisplay), new PropertyMetadata(true, (o, e) =>
             {
                 if (o is HexEditorDisplay hexEditorDisplay && hexEditorDisplay.Document != null)
+                {
                     hexEditorDisplay.Document.AllowAppendDocument = (bool)e.NewValue;
+                    hexEditorDisplay.InvalidateMetrics();
+                    hexEditorDisplay.InvalidateVisual();
+                }
             }));
 
         public bool IsShowFooter
@@ -2226,6 +2240,8 @@ namespace Spooksoft.HexEditor.Controls
                 if (o is HexEditorDisplay hexEditorDisplay && hexEditorDisplay.Document != null)
                 {
                     hexEditorDisplay.Document.IsShowFooter = (bool)e.NewValue;
+                    hexEditorDisplay.InvalidateMetrics();
+                    hexEditorDisplay.InvalidateVisual();
                 }
             }));
     }

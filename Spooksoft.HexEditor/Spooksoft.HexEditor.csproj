@@ -1,23 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net472;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net48;net472;net6.0-windows;net8.0-windows</TargetFrameworks>
     <Nullable>disable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <FileVersion>1.0.3.0</FileVersion>
-    <AssemblyVersion>1.0.3.0</AssemblyVersion>
-    <VersionPrefix>1.0.3.0</VersionPrefix>
+    <FileVersion>1.0.3.2</FileVersion>
+    <AssemblyVersion>1.0.3.2</AssemblyVersion>
+    <VersionPrefix>1.0.3.2</VersionPrefix>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>IsReadOnly and support for the mouse wheel</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Wojciech "Spook" Sura</Authors>
     <Description>A performant and elegant hexeditor control for WPF.</Description>
-    <PackageProjectUrl>https://github.com/wojciechsura/Spooksoft.HexEditor</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/wojciechsura/Spooksoft.HexEditor</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/programatix/Spooksoft.HexEditor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/programatix/Spooksoft.HexEditor</RepositoryUrl>
+    <PackageId>Programatix.$(AssemblyName)</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU'">
     <WarningLevel>5</WarningLevel>
