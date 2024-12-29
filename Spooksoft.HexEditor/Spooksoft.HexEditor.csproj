@@ -12,9 +12,10 @@
     <AssemblyVersion>1.0.3.3</AssemblyVersion>
     <VersionPrefix>1.0.3.3</VersionPrefix>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>IsReadOnly and support for the mouse wheel</PackageReleaseNotes>
+    <PackageReleaseNotes>- Fixed last byte not updatable when `AllowAppendDocument` is `false`.
+- Added a trigger to `Changed` in `LoadFromStream`.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>Wojciech "Spook" Sura</Authors>
+    <Authors>Wojciech "Spook" Sura, Nicholas Poh</Authors>
     <Description>A performant and elegant hexeditor control for WPF.</Description>
     <PackageProjectUrl>https://github.com/programatix/Spooksoft.HexEditor</PackageProjectUrl>
     <RepositoryUrl>https://github.com/programatix/Spooksoft.HexEditor</RepositoryUrl>
