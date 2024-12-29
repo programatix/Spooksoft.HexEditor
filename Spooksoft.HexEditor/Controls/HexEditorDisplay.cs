@@ -1604,7 +1604,7 @@ namespace Spooksoft.HexEditor.Controls
                             }
                         case EnteringMode.Overwrite:
                             {
-                                if (offset == Document.Size)
+                                if (offset == Document.Size + (AllowAppendDocument ? 0 : 1))
                                 {
                                     if (!AllowAppendDocument)
                                         continue;
@@ -1620,6 +1620,12 @@ namespace Spooksoft.HexEditor.Controls
                     }
 
                     offset++;
+
+                    if (!AllowAppendDocument && offset > Document.Size)
+                    {
+                        offset = Document.Size;
+                    }
+
                     Selection = new CharCursorSelectionInfo(offset);
                 }
 
@@ -1665,7 +1671,7 @@ namespace Spooksoft.HexEditor.Controls
                     for (int i = 0; i < MAX_HEX_CHAR_INDEX - @char; i++)
                         multiplier *= 16;
 
-                    if (enteringMode == EnteringMode.Insert || offset == Document.Size)
+                    if (enteringMode == EnteringMode.Insert || offset == Document.Size + (AllowAppendDocument ? 0 : 1))
                     {
                         if (!AllowAppendDocument)
                             continue;
@@ -1706,9 +1712,15 @@ namespace Spooksoft.HexEditor.Controls
                         offset++;
                         @char = 0;
                     }
+
+                    if (!AllowAppendDocument && offset > Document.Size)
+                    {
+                        offset = Document.Size;
+                        @char = 1;
+                    }
+
                     Selection = new HexCursorSelectionInfo(offset, @char);
                 }
-
                 InvalidateMetrics();
                 EnsureCursorVisible();
             }

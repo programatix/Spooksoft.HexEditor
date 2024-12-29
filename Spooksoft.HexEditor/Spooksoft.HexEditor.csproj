@@ -8,9 +8,9 @@
 
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <FileVersion>1.0.3.2</FileVersion>
-    <AssemblyVersion>1.0.3.2</AssemblyVersion>
-    <VersionPrefix>1.0.3.2</VersionPrefix>
+    <FileVersion>1.0.3.3</FileVersion>
+    <AssemblyVersion>1.0.3.3</AssemblyVersion>
+    <VersionPrefix>1.0.3.3</VersionPrefix>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>IsReadOnly and support for the mouse wheel</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

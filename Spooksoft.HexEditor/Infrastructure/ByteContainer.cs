@@ -497,6 +497,7 @@ namespace Spooksoft.HexEditor.Infrastructure
                 }
                 while (bytesRead > 0);
             }
+            Changed?.Invoke(this, new DataChangeEventArgs(ByteBufferChange.Replace, 0, (int)stream.Length));
         }
 
         public void SaveToStream(Stream stream)
