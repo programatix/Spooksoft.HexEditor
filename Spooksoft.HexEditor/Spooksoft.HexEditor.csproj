@@ -8,9 +8,9 @@
 
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <FileVersion>1.0.3.3</FileVersion>
-    <AssemblyVersion>1.0.3.3</AssemblyVersion>
-    <VersionPrefix>1.0.3.3</VersionPrefix>
+    <FileVersion>1.0.3.4</FileVersion>
+    <AssemblyVersion>1.0.3.4</AssemblyVersion>
+    <VersionPrefix>1.0.3.4</VersionPrefix>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>- Fixed last byte not updatable when `AllowAppendDocument` is `false`.
 - Added a trigger to `Changed` in `LoadFromStream`.</PackageReleaseNotes>

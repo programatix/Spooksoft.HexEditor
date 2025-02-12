@@ -723,7 +723,7 @@ namespace Spooksoft.HexEditor.Controls
 
         private BaseMouseHitInfo GetMouseHit(PixelPoint point)
         {
-            if (Document != null)
+            if (Document != null && metrics.Control != null)
             {
                 if (metrics.Control.HexDocumentArea.Rectangle.Contains(point))
                 {
