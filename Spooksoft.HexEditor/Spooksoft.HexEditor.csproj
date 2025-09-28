@@ -12,8 +12,8 @@
     <AssemblyVersion>1.0.3.5</AssemblyVersion>
     <VersionPrefix>1.0.3.5</VersionPrefix>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>- Fixed last byte not updatable when `AllowAppendDocument` is `false`.
-- Added a trigger to `Changed` in `LoadFromStream`.</PackageReleaseNotes>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\ReleaseNotes.txt'))
+	</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Wojciech "Spook" Sura, Nicholas Poh</Authors>
     <Description>A performant and elegant hexeditor control for WPF.</Description>
