@@ -46,7 +46,7 @@ namespace Spooksoft.HexEditor.Infrastructure
 
         private readonly List<HistoryEntry> history = new List<HistoryEntry>();
         private int currentEntry;
-        private int maxHistoryEntries = 64;
+        private readonly int maxHistoryEntries = 64;
 
         // Private methods ----------------------------------------------------
 
@@ -187,10 +187,16 @@ namespace Spooksoft.HexEditor.Infrastructure
             AddHistoryEntry(entry);
         }
 
-        public override void Replace(int offset, byte[] target, int targetOffset, int length)
+        public override int Replace(int offset, byte[] target, int targetOffset, int length, bool allowAppendDocument = true)
         {
             int availableBytes = CountAvailableBytes(offset, length);
             HistoryAction undoAction;
+
+            if (!allowAppendDocument)
+            {
+                // Do not insert since overridding
+                length = Math.Min(availableBytes, length);
+            }
 
             byte[] newData = new byte[length];
             Array.Copy(target, targetOffset, newData, 0, length);
@@ -208,11 +214,13 @@ namespace Spooksoft.HexEditor.Infrastructure
                 undoAction = new HistoryAction(ByteBufferChange.Remove, offset, length, null, insertAction);
             }
 
-            base.Replace(offset, target, targetOffset, length);
+            var bytesReplaced = base.Replace(offset, target, targetOffset, length, allowAppendDocument);
 
             var redoAction = new HistoryAction(ByteBufferChange.Replace, offset, length, newData, null);
             var entry = new HistoryEntry(undoAction, redoAction);
             AddHistoryEntry(entry);
+
+            return bytesReplaced;
         }
 
         public override void Clear()

@@ -135,7 +135,7 @@ namespace Spooksoft.HexEditor.Infrastructure
                 throw new ArgumentOutOfRangeException(nameof(offset));
 
             (int bucketIndex, int bucketOffset) = GetBucketFromOffset(offset);
-            if (bucketIndex < 0 || bucketIndex >= buckets.Count)
+            if (bucketIndex < 0 || bucketIndex > buckets.Count)
                 throw new ArgumentOutOfRangeException(nameof(offset));
 
             int availableBytes = 0;
@@ -187,7 +187,7 @@ namespace Spooksoft.HexEditor.Infrastructure
         {
             if (buffer == null)
                 throw new ArgumentNullException(nameof(buffer));
-            if (bufferOffset < 0 || bufferOffset >= buffer.Length)
+            if (bufferOffset < 0 || bufferOffset > buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(bufferOffset));
             if (bufferOffset + length > buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(length));
@@ -326,7 +326,7 @@ namespace Spooksoft.HexEditor.Infrastructure
             }
         }
 
-        public virtual void Replace(int offset, byte[] target, int targetOffset, int length)
+        public virtual int Replace(int offset, byte[] target, int targetOffset, int length, bool allowAppendDocument = true)
         {
             if (offset < 0)
                 throw new ArgumentOutOfRangeException(nameof(offset));
@@ -355,18 +355,27 @@ namespace Spooksoft.HexEditor.Infrastructure
                     bucketOffset = 0;
                 }
 
-                // If there are any bytes remaining, append them as additional buckets
-                while (remainingLength > 0)
+                if (allowAppendDocument)
                 {
-                    var bucket = new ByteBucket(bucketSize, bufferPool);
-                    buckets.Add(bucket);
+                    // If there are any bytes remaining, append them as additional buckets
+                    if (remainingLength > 0)
+                    {
+                        cachedSize = null;
+                    }
+                    while (remainingLength > 0)
+                    {
+                        var bucket = new ByteBucket(bucketSize, bufferPool);
+                        buckets.Add(bucket);
 
-                    bucket.ContinueAppending(target, ref targetOffset, ref remainingLength);
+                        bucket.ContinueAppending(target, ref targetOffset, ref remainingLength);
+                    }
                 }
+
+                return length - remainingLength;
             }
             finally
             {
-                // Replace doesn't change size, no need for size cache invalidation
+                // Replace doesn't change size, no need for size cache invalidation, unless if document is appended
                 Changed?.Invoke(this, new DataChangeEventArgs(ByteBufferChange.Remove, offset, length));
             }
         }

@@ -17,7 +17,7 @@ namespace Spooksoft.HexEditor.Controls
     {
         // Private constants --------------------------------------------------
 
-        private char[] hexChars = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+        private readonly char[] hexChars = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
         private const double GHOST_SELECTION_THICKNESS = 1.0;
         private const int HEX_CHAR_COUNT = 2;
@@ -1355,7 +1355,14 @@ namespace Spooksoft.HexEditor.Controls
 
         private void DeleteRangeSelection(RangeSelectionInfo rangeSelection)
         {
-            Document.Remove(rangeSelection.SelectionStart, rangeSelection.SelectionLength);
+            if (AllowAppendDocument && enteringMode == EnteringMode.Insert)
+            {
+                Document.Remove(rangeSelection.SelectionStart, rangeSelection.SelectionLength);
+            }
+            else
+            {
+                Document.Replace(rangeSelection.SelectionStart, new byte[rangeSelection.SelectionLength], 0, rangeSelection.SelectionLength, AllowAppendDocument);
+            }
             switch (rangeSelection.Area)
             {
                 case DataArea.Hex:
@@ -1476,23 +1483,42 @@ namespace Spooksoft.HexEditor.Controls
             }
         }
 
-        private void DoPaste(byte[] dataToPaste, int offset)
+        private int DoPaste(byte[] dataToPaste, int offset)
         {
             switch (enteringMode)
             {
                 case EnteringMode.Insert:
                     {
                         Document.Insert(offset, dataToPaste, 0, dataToPaste.Length);
-                        break;
+                        return dataToPaste.Length;
                     }
                 case EnteringMode.Overwrite:
                     {
-                        Document.Replace(offset, dataToPaste, 0, dataToPaste.Length);
-                        break;
+                        return Document.Replace(offset, dataToPaste, 0, dataToPaste.Length, AllowAppendDocument);
                     }
                 default:
                     break;
             }
+            return 0;
+        }
+
+        private static byte[] ParseHexString(string hex)
+        {
+            hex = hex.Replace(" ", "")
+                     .Replace("\n", "")
+                     .Replace("\r", "")
+                     .Replace("0x", "")
+                     .Replace("0X", "");
+
+            if (hex.Length % 2 != 0)
+                hex += "0"; // Pad with trailing zero
+
+            byte[] bytes = new byte[hex.Length / 2];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+            }
+            return bytes;
         }
 
         private void PasteFromClipboard()
@@ -1501,11 +1527,34 @@ namespace Spooksoft.HexEditor.Controls
             {
                 // Try to get data to paste
 
-                DataObject retrievedData = Clipboard.GetDataObject() as DataObject;
-                if (retrievedData == null || !retrievedData.GetDataPresent(typeof(byte[])))
-                    return;
+                byte[] dataToPaste = null;
 
-                var dataToPaste = retrievedData.GetData(typeof(byte[])) as byte[];
+                if (Clipboard.GetDataObject() is DataObject retrievedData)
+                {
+                    // First try raw byte[]
+                    if (retrievedData.GetDataPresent(typeof(byte[])))
+                    {
+                        dataToPaste = retrievedData.GetData(typeof(byte[])) as byte[];
+                    }
+
+                    // Fallback: Try parsing hex string from text
+                    else if (retrievedData.GetDataPresent(DataFormats.Text))
+                    {
+                        string text = retrievedData.GetData(DataFormats.Text) as string;
+                        if (!string.IsNullOrWhiteSpace(text))
+                        {
+                            try
+                            {
+                                dataToPaste = ParseHexString(text);
+                            }
+                            catch (FormatException)
+                            {
+                                // Optional: log or ignore invalid hex
+                            }
+                        }
+                    }
+                }
+
                 if (dataToPaste == null || dataToPaste.Length == 0)
                     return;
 
@@ -1516,11 +1565,18 @@ namespace Spooksoft.HexEditor.Controls
                     case RangeSelectionInfo rangeSelection:
                         {
                             int offset = rangeSelection.SelectionStart;
+
+                            // Clamp if needed
+                            if (dataToPaste.Length > rangeSelection.SelectionLength && (!AllowAppendDocument || enteringMode != EnteringMode.Insert))
+                            {
+                                Array.Resize(ref dataToPaste, rangeSelection.SelectionLength);
+                            }
+
                             DeleteRangeSelection(rangeSelection);
 
-                            DoPaste(dataToPaste, offset);
+                            var pastedLength = DoPaste(dataToPaste, offset);
 
-                            Selection = new HexCursorSelectionInfo(offset + dataToPaste.Length, 0);
+                            Selection = new HexCursorSelectionInfo(offset + pastedLength, 0);
                             EnsureCursorVisible();
 
                             break;
@@ -1529,9 +1585,9 @@ namespace Spooksoft.HexEditor.Controls
                         {
                             int offset = hexCursorSelection.Offset;
 
-                            DoPaste(dataToPaste, offset);
+                            var pastedLength = DoPaste(dataToPaste, offset);
 
-                            Selection = new HexCursorSelectionInfo(offset + dataToPaste.Length, 0);
+                            Selection = new HexCursorSelectionInfo(offset + pastedLength, 0);
                             EnsureCursorVisible();
 
                             break;
@@ -1540,9 +1596,9 @@ namespace Spooksoft.HexEditor.Controls
                         {
                             int offset = charCursorSelection.Offset;
 
-                            DoPaste(dataToPaste, offset);
+                            var pastedLength = DoPaste(dataToPaste, offset);
 
-                            Selection = new CharCursorSelectionInfo(offset + dataToPaste.Length);
+                            Selection = new CharCursorSelectionInfo(offset + pastedLength);
                             EnsureCursorVisible();
 
                             break;
@@ -1706,7 +1762,7 @@ namespace Spooksoft.HexEditor.Controls
                     else
                         throw new InvalidEnumArgumentException("Unsupported entering mode!");
 
-                    @char = @char + 1;
+                    @char++;
                     if (@char > MAX_HEX_CHAR_INDEX)
                     {
                         offset++;
@@ -1840,9 +1896,9 @@ namespace Spooksoft.HexEditor.Controls
         {
             if (!IsReadOnly)
             {
-                if (selection is HexCursorSelectionInfo || (selection is RangeSelectionInfo && ((RangeSelectionInfo)selection).Area == DataArea.Hex))
+                if (selection is HexCursorSelectionInfo || (selection is RangeSelectionInfo info1 && info1.Area == DataArea.Hex))
                     HandleHexTextInput(e.Text);
-                else if (selection is CharCursorSelectionInfo || (selection is RangeSelectionInfo && ((RangeSelectionInfo)selection).Area == DataArea.Char))
+                else if (selection is CharCursorSelectionInfo || (selection is RangeSelectionInfo info2 && info2.Area == DataArea.Char))
                     HandleCharTextInput(e.Text);
             }
 

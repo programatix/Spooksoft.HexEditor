@@ -32,6 +32,10 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <None Include="C:\Users\tspoh\source\repos\Spooksoft.HexEditor\Spooksoft.HexEditor\.editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\tspoh\source\repos\Spooksoft.HexEditor\Spooksoft.HexEditor\.editorconfig" />
   </ItemGroup>
 
 </Project>
