@@ -5,6 +5,9 @@ stages:
 
 test_job:
   stage: test
+  before_script:
+    - dotnet nuget remove source gitlab
+    - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name gitlab --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
   script:
     - dotnet test
 
@@ -12,10 +15,11 @@ deploy-nuget:
   stage: deploy
   dependencies:
     - test_job
+  before_script:
+    - dotnet nuget remove source gitlab
+    - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name gitlab --username gitlab-ci-token --password $CI_JOB_TOKEN 
   script:
     - dotnet pack -c Release
-    - dotnet nuget remove source gitlab
-    - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name gitlab --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
     - dotnet nuget push "**/release/*.nupkg" --source gitlab
   only:
     - main
