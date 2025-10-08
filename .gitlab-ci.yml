@@ -20,4 +20,4 @@ deploy-nuget:
     - dotnet pack -c Release
     - dotnet nuget push "**/release/*.nupkg" --source gitlab
   only:
-    - main
+    - master
